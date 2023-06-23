@@ -1,0 +1,133 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+
+<h2>Listing: {{listing.item}}</h2>
+
+<section class="scrollable-container">
+
+
+  <figure class="listing">
+    <div class="img-box">
+      {% if listing.status == "CLS" %}
+      <p class="tag close-sold-tag">Closed</p>
+      {% elif listing.status == "SLD" %}
+        <p class="tag close-sold-tag">Sold</p>
+      {% elif watched %}
+        <p class="tag watch-tag">Watching</p>
+      {% endif %}
+      {% if listing.image_url %}
+          <img src={{listing.image_url}} alt="item" />
+          {% else %}
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg" alt="item" />
+          {% endif %}
+    </div>
+
+    <div class="listing-box">
+      <div class="flex-container">
+        <h3>
+          {{listing.item}}
+        </h3>
+        {% if user.is_authenticated %}
+          {% if not listing_seller %}
+            <form class="watch-form" action="{% url 'listings' listing.id %}" method="post">
+            {% csrf_token %}
+            {% if watched %}
+              <input class="btn btn-primary btn--watch" name="unwatch" type='submit' value='Remove from watchlist'/>
+            {% elif not watched and listing.status == "ACT" %}
+              <input class="btn btn-primary btn--watch" name="watch" type='submit' value='Add to watchlist'/> 
+            {% endif %}         
+            </form>
+          {% elif listing_seller and listing.status == "ACT" %}
+            <form class="watch-form" action="{% url 'listings' listing.id%}" method="post">
+              {% csrf_token %}
+              <input class="btn btn-primary btn--watch" name="close" type='submit' value='Close listing'/>        
+            </form>
+          {% endif %}
+        {% endif %}
+      </div>
+      <p class="item-details margin-b-m">Description: {{listing.description}}</p>
+      <p class="item-details margin-b-s">Starting price: <strong class="item-price">${{listing.starting_price|floatformat:2}}</strong></p>
+      <p class="item-details">Current price: <strong class="item-price">${{listing.current_price|floatformat:2}}</strong></p>
+      {% if listing.status == "ACT" %}
+        <p class="info-message">{{bid_count}} bid(s) so far. {% if highest_bidder %}Your bid is the current bid. {% elif listing_seller %} You can not place bids on this listing since it belongs to you. {% endif %}</p>
+      {% elif highest_bidder %}
+        <p class="item-details margin-b-s"><strong class="item-price">Congratulations, you won this bidding!!!</strong></p>
+      {% elif listing.status == "SLD" %}
+        <p class="item-details margin-b-s"><strong class="item-price">The winner for this auction is {{highest.username}}.</strong></p>
+      {% elif listing.status == "CLS" %}
+        <p class="item-details margin-b-s"><strong class="item-price">No biddings were placed for this listing.</strong></p>
+      {% endif %}
+      <!-- Display Form -->
+      {% if user.is_authenticated %}
+        {% if not listing_seller and listing.status == "ACT" %}
+          <form class="add-form" action="{% url 'listings' listing.id%}" method="post">
+            {% csrf_token %}
+            {% for field in bid_form %}
+              {{ field }}
+              {% if field.errors %}
+                <div class="alert alert-danger error-message" role="alert">
+                  {{ field.errors }}
+                </div>
+              {% endif %}
+            {% endfor %}
+            <input class="btn btn--bid" type='submit' value='Place bid'/>
+          </form>
+        {% else %}
+
+        {% endif %}
+      {% elif not user.is_authenticated and listing.status == "ACT" %}
+        <a class="link-margin-t-s" href="{% url 'login' %}">Wanna place a bid? Log in here</a>
+      {% endif %}
+    </div>
+  </figure>
+  <h3>Details</h3>
+  <ul>
+    <li class="item-detail"> Listed on {{listing.listing_date}} by<a href="{% url 'listings_of_seller' listing.seller.username %}" class="item-seller"> {{listing.seller.username}}</a>
+    {% if listing.category %}
+    <li class="item-detail">Category: <a href="{% url 'listings_of_category' listing.category %}" class="item-seller"> {{listing.category}}</a></li>
+    {% endif %}
+  </ul>
+  {% if comments %}
+  <h3>Comments:</h3>
+  <ul>
+    {% for comment in comments %}
+      <li><em>"{{comment.comment}}"</em> by {{comment.user.username}} on {{comment.comment_date}}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if user.is_authenticated %}
+  {% if not listing_seller and listing.status == "ACT" %}
+    <h4>Add a comment: </h4>
+    <!-- Display Form -->
+    <form class="add-form" action="{% url 'listings' listing.id %}" method="post">
+      {% csrf_token %}
+      {% for field in comment_form %}
+        {{ field }}
+        {% if field.errors %}
+          <div class="alert alert-danger error-message" role="alert">
+          {{ field.errors }}
+          </div>
+        {% endif %}
+      {% endfor %}
+      <input class="btn btn-primary" type='submit' value='Add comment'/>
+      </form>
+  {% endif %}
+{% endif %}
+    </section>
+{% endblock %}
+
+        <!-- {% if watched %}
+        <form class="watch-form" action="{% url 'listings' listing.id%}" method="post">
+          {% csrf_token %}
+          <input class="btn btn-primary btn--watch" name="unwatch" type='submit' value='Remove from watchlist'/>
+        </form>
+
+
+        {% else %}
+        <form class="watch-form" action="{% url 'listings' listing.id%}" method="post">
+          {% csrf_token %}
+          <input class="btn btn-primary btn--watch" name="watch" type='submit' value='Add to watchlist'/>
+        </form>
+        {% endif %} -->

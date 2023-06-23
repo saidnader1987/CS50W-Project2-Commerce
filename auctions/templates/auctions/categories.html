@@ -1,0 +1,14 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<h2>Categories</h2>
+<section class="scrollable-container">
+  <ul>
+    {% for category in categories %}
+      <li><a href="{% url 'listings_of_category' category.description %}" class="item-seller"> {{category.description}}
+      </a></li>
+    {% endfor %}
+  </ul>
+</section>
+
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+{% if not watchlist %}
+    {% if won %}
+    <h2>Your Won Auctions</h2>
+    {% elif closed %}
+    <h2>Your Closed Listings</h2>
+
+    {% else %}
+    <h2>Active Listings 
+      {% if category %} of Category {{category}}
+      {% elif seller %} of Seller {{seller}}
+      {% endif %}
+    </h2>
+    {% endif %}
+  {% elif watchlist %}
+    <h2>Watchlist</h2>
+
+{% endif %}
+
+    <section class="scrollable-container">
+
+
+        {% for listing in listings %}
+        <figure class="item">
+            <div class="img-box">
+                <a href="{% url 'listings' listing.id %}">
+                {% if listing.image_url %}
+                    <img src={{listing.image_url}} alt="item" />
+                    {% else %}
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg" alt="item" />
+                    {% endif %}
+                </a>
+            </div>
+            <div>
+
+              <div class="item-box">
+                <a href="{% url 'listings' listing_id=listing.id %}" class="item-link">
+                  {{listing.item}}
+                </a>
+                {% if watchlist %}
+                <form action="{% url 'watchlist' %}" method="post">
+                  {% csrf_token %}
+                  <input name="id" type="hidden" value = {{listing.id}}>
+                  <button class="action-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="action-icon">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>   
+                  </button>
+                </form>
+                {% endif %}
+
+
+
+
+                <p class="item-details">Current price: <strong class="item-price">${{listing.current_price|floatformat:2}}</strong></p>
+                <p class="item-details">Description: {{listing.description}}</p>
+                
+                <p class="item-date"> Listed on {{listing.listing_date}} by<a href="{% url 'listings_of_seller' listing.seller.username %}" class="item-seller"> {{listing.seller.username}}
+                </a></p>
+            </div>
+          </figure>
+        {% endfor %}
+
+    </section>
+{% endblock %}
+
